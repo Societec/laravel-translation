@@ -25,7 +25,7 @@ class Translation
         $this->baseFilename = app()->langPath() . DIRECTORY_SEPARATOR . $this->baseLanguage . '.json';
     }
 
-    public function scan($mergeKeys = false): int
+    public function scan($mergeKeys = true): int
     {
         $allMatches = [];
         $finder = new Finder();
