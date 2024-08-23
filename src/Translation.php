@@ -11,7 +11,6 @@ use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpFoundation\Response;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Vemcogroup\Translation\Exceptions\POEditorException;
-
 use const DIRECTORY_SEPARATOR;
 
 class Translation
@@ -48,30 +47,21 @@ class Translation
             // See https://regex101.com/r/jS5fX0/5
             '[^\w]' . // Must not start with any alphanum or _
             '(?<!->)' . // Must not start with ->
-            '(?:' . implode('|', $functions) . ')' . // Must start with one of the functions
+            '(' . implode('|', $functions) . ')' . // Must start with one of the functions
             "\(" . // Match opening parentheses
             "\s*" . // Allow whitespace chars after the opening parenthese
-            '(?:' . // Non capturing group
-            "'(.+)'" . // Match 'text'
-            '|' . // or
-            "`(.+)`" . // Match `text`
-            '|' . // or
-            "\"(.+)\"" . // Match "text"
-            ')' . // Close non-capturing group
+            "[\'\"]" . // Match " or '
+            '(' . // Start a new group to match:
+            '.+' . // Must start with group
+            ')' . // Close group
+            "[\'\"]" . // Closing quote
             "\s*" . // Allow whitespace chars before the closing parenthese
             "[\),]"  // Close parentheses or new parameter
         ;
 
         foreach ($finder as $file) {
             if (preg_match_all("/$pattern/siU", $file->getContents(), $matches)) {
-                unset($matches[0]);
-                $allMatches[$file->getRelativePathname()] =
-                    array_filter(
-                        array_merge(...$matches),
-                        function ($value) {
-                            return (!is_null($value)) && !empty($value);
-                        }
-                    );
+                $allMatches[$file->getRelativePathname()] = $matches[2];
             }
         }
 
@@ -94,7 +84,7 @@ class Translation
 
     public function createJs(): int
     {
-        $jsLangPath = config('translation.output_directory');
+        $jsLangPath = public_path('build/lang');
         if (!is_dir($jsLangPath) && !mkdir($jsLangPath, 0777, true)) {
             throw POEditorException::unableToCreateJsDirectory($jsLangPath);
         }
