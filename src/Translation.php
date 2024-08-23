@@ -27,7 +27,7 @@ class Translation
         $this->baseFilename = app()->langPath() . DIRECTORY_SEPARATOR . $this->baseLanguage . '.json';
     }
 
-    public function scan($mergeKeys = false): int
+    public function scan($mergeKeys = true): int
     {
         $allMatches = [];
         $finder = new Finder();
@@ -209,7 +209,7 @@ class Translation
                     ->first()
                     ->toJson();
 
-                $this->query('https://api.poeditor.com/v2/translations/update', [
+                $this->query('https://api.poeditor.com/v2/translations/add', [
                     'form_params' => [
                         'api_token' => $this->apiKey,
                         'id' => $this->projectId,
